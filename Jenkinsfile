@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/PhanSayam/R507.git'
+                git branch: 'main', url: 'https://github.com/PhanSayam/R507.git'
             }
         }
         stage('Run Tests') {
@@ -18,6 +18,11 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $DOCKER_IMAGE .'
+            }
+        }
+        stage('Security Scan') {
+            steps {
+                sh 'trivy image $DOCKER_IMAGE || exit 1'
             }
         }
         stage('Push Docker Image') {
@@ -32,6 +37,11 @@ pipeline {
             steps {
                 sh 'kubectl apply -f deployment/deployment.yaml'
                 sh 'kubectl apply -f deployment/service.yaml'
+            }
+        }
+        stage('Canary Deployment') {
+            steps {
+                sh 'kubectl apply -f deployment/canary-deployment.yaml'
             }
         }
     }

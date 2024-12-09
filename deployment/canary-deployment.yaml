@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: devops-app
-        image: dockerhub-username/devops-app:latest
+        image: phandamien/devops-app:latest
         ports:
         - containerPort: 5000
