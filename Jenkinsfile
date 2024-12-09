@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_IMAGE = "dockerhub-username/devops-app"
+        DOCKER_IMAGE = "phandamien/devops-app"
     }
     stages {
         stage('Checkout') {
