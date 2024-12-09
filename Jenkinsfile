@@ -1,29 +1,37 @@
 pipeline {
     agent any
+    environment {
+        DOCKER_IMAGE = "dockerhub-username/devops-app"
+    }
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                checkout scm
+                git 'https://github.com/PhanSayam/R507.git'
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                sh 'pip install -r requirements.txt'
+                sh 'python -m unittest discover tests'
             }
         }
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh 'docker build -t devops-app .'
-                }
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
         stage('Push Docker Image') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh '''
-                        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-                        docker tag devops-app $DOCKER_USERNAME/devops-app
-                        docker push $DOCKER_USERNAME/devops-app
-                        '''
-                    }
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    sh 'docker push $DOCKER_IMAGE'
                 }
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh 'kubectl apply -f deployment/deployment.yaml'
+                sh 'kubectl apply -f deployment/service.yaml'
             }
         }
     }
