@@ -9,6 +9,19 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/PhanSayam/R507.git'
             }
         }
+        stage('Start ngrok') {
+            steps {
+                sh 'ngrok http 5000 & sleep 5'
+            }
+        }
+        stage('Get ngrok URL') {
+            steps {
+                script {
+                    def url = sh(script: "curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'", returnStdout: true).trim()
+                    echo "Ngrok URL: ${url}"
+                }
+            }
+        }
         stage('Run Tests') {
             steps {
                 sh 'pip install -r requirements.txt'
